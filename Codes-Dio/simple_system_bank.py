@@ -110,7 +110,7 @@ while True: #laço while como true ate que seja atendida as condicões
             elif number_option_menu == 3: #verifica se o numero do menu escolhido foi igual a 3 e mostrara o extrato
                 print("----------------EXTRATO-----------------")
                 print(f"Nome: {user}\n")
-                print("Sem movimentaçãoes na conta." if not extrato else extrato)
+                print("Sem movimentaçãoes na conta." if not extrato else extrato) #se o extrato retorna em branco ele retornara que esta movimentações 
                 print(f"Saldo: R$ {saldo:.2f}")
                 print("----------------------------------------")
                
