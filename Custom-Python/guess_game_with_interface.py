@@ -144,16 +144,20 @@ def final_screen(): #função para chamar ultima tela
     label = ctk.CTkLabel(app, text=f"{user if user != '' else 'Player'}, sua pontuação foi: {total_points if total_points >= 0 else 0}", font=("Arial", 16) )
     label.pack(pady=30) #mostrara a mensagem com nome do usuario e passando total de pontos, caso total de pontos ser menor que zero ele vai definir 0 como padrao
 
-    def reiniciar(): #funçao reiniciar jogo
+    def restart(): #funçao reiniciar jogo
+        global rounds
+        rounds = 0
+        global total_points
+        total_points = 0
         firt_screen()
 
-    def finalizar(): #funçao finalizar jogo
+    def finish(): #funçao finalizar jogo
         app.destroy()
 
-    button = ctk.CTkButton(app, text="Jogar Novamente", fg_color='green', command=reiniciar, font=("Arial", 16), hover_color='darkgreen') #button
+    button = ctk.CTkButton(app, text="Jogar Novamente", fg_color='green', command=restart, font=("Arial", 16), hover_color='darkgreen') #button
     button.pack(pady=10)
 
-    button = ctk.CTkButton(app, text="Sair do Jogo", fg_color='red', command=finalizar, font=("Arial", 16), hover_color='darkred') #button
+    button = ctk.CTkButton(app, text="Sair do Jogo", fg_color='red', command=finish, font=("Arial", 16), hover_color='darkred') #button
     button.pack(pady=10)
 
 app = ctk.CTk() #criando a aplicação
