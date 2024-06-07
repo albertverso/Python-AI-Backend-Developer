@@ -25,7 +25,7 @@ def menu(): #função que vai mostrar a opção do menu para o usuario
 
     return menu_options # função retornara o numero escolhido no menu      
 
-def deposito(saldo, valor, extrato):
+def deposito(saldo, valor, extrato):# função deposito
     saldo += valor #cada vez que o usuario escolher deposito ele ira somar o valor do deposito ao saldo
     extrato += f"Deposito: R$ {valor:.2f}\n" #a cada deposito sera guardado da variavel extrato
     
@@ -45,7 +45,7 @@ def check_deposito(name, saldo, extrato): #função para checar o deposito se el
 
     return saldo, extrato #função retornara o valor do deposito
 
-def saque(saldo, valor, extrato, numero_saques):
+def saque(saldo, valor, extrato, numero_saques):# função saque
     LIMITE_SAQUES = 3
 
     if numero_saques < LIMITE_SAQUES: 
@@ -77,14 +77,14 @@ def check_saque(name, saldo, extrato, numero_saques): #função para checar o sa
 
     return saldo, extrato, numero_saques  #retornara o valor do saque
 
-def exibir_extrato(name, saldo, extrato):
+def exibir_extrato(name, saldo, extrato):#função exibir extrato
     print("----------------EXTRATO-----------------")
     print(f"Nome: {name}\n")
     print("Sem movimentaçãoes na conta." if not extrato else extrato) #se o extrato retorna em branco ele retornara que esta movimentações 
     print(f"Saldo: R$ {saldo:.2f}")
     print("----------------------------------------")
 
-def criar_usuario(usuarios):
+def criar_usuario(usuarios):#função de criar usuarios
     while True:
         try:
             cpf = int(input("Informe o CPF (somente numero):"))
@@ -93,10 +93,10 @@ def criar_usuario(usuarios):
         else:
             break
     
-    usuario = filtrar_usuario(cpf, usuarios)
+    usuario = filtrar_usuario(cpf, usuarios) #->> filtra se os clientes ja sao cadastrados ou nao
 
     if usuario:
-        print("\n Já existe usuario com esse CPF!")
+        print("\n Já existe usuario com esse CPF!") # se ja existir exibira essa mensagem
 
     nome = input("Infome o seu nome completo: ")
     while True:
@@ -109,14 +109,14 @@ def criar_usuario(usuarios):
     
     endereco = input("Informe seu endereço: ")
 
-    usuarios.append({"nome": nome, "data_nascimento": data_nascimento, "cpf": cpf, "endereco": endereco })
+    usuarios.append({"nome": nome, "data_nascimento": data_nascimento, "cpf": cpf, "endereco": endereco }) # adicionara valores a cada atributo na lista usuarios
     print(" Usuario criado com sucesso!!!")
 
-def filtrar_usuario(cpf, usuarios):
+def filtrar_usuario(cpf, usuarios):#função de filtrar contas
     usuarios_filtrados = [usuario for usuario in usuarios if usuario["cpf"] == cpf]
     return usuarios_filtrados[0] if usuarios_filtrados else None
 
-def criar_conta(numero_conta, usuarios):
+def criar_conta(numero_conta, usuarios):#função de criar contas
     AGENCIA = "0001"
     while True:
         try:
@@ -125,15 +125,15 @@ def criar_conta(numero_conta, usuarios):
             print("INVALIDO: Somente numeros")
         else:
             break  
-    usuario = filtrar_usuario(cpf, usuarios)
+    usuario = filtrar_usuario(cpf, usuarios) # -> so poderar criar conta se estiver um usuario criado
 
     if usuario:
         print("\n Conta criada com sucesso!")
-        return {"agencia": AGENCIA, "numero_conta": numero_conta, "usuario": usuario}
+        return {"agencia": AGENCIA, "numero_conta": numero_conta, "usuario": usuario} #caso exista conta ele adicionara valores a cada atributo da lista
     
-    print("Usuario nao encontrado!!!")
+    print("Usuario nao encontrado!!!") # -> caso nao seja encontrado
 
-def listar_contas(contas):
+def listar_contas(contas): #função de listar contas
     for conta in contas:
         linha = f"""
             Agencia:\t{conta['agencia']}
@@ -193,6 +193,8 @@ def main():
                 elif number_option_menu == 4:
                     numero_conta = len(contas) +1
                     conta = criar_conta(numero_conta, usuarios)
+                    if conta:
+                        contas.append(conta) #- caso a função criar_conta retorna os valores em caso de existencia de conta ele adicionara conta na lista de contas.
                     break
                 elif number_option_menu == 5:
                     listar_contas(contas)
