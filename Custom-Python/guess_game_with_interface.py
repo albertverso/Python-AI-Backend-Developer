@@ -35,8 +35,7 @@ def verify_input(value, range_input=bool ):
 
     except ValueError:
         playing.configure(border_color='red') #definindo a borda para vermelho em caso de erro no entry playing
-        error.configure(text = "INVÁLIDO: Digite um número inteiro!") #definindo uma mensagem para label erro                                                                 
-                                                                                 
+        error.configure(text = "INVÁLIDO: Digite um número inteiro!") #definindo uma mensagem para label erro                                                                                                                                             
 
 def sorted(): # função que verificar a quantidade de sorteios
     global total_points #definindo a variavel de forma global para ter acesso e atualizar em qualquer local do codigo
@@ -64,9 +63,9 @@ def update_progress(): # função para alterar o progresso do progressbar
         progressbar.set(progress) #adiciona o progresso
         app.after(50, update_progress)  # Atualiza a cada 50 milissegundos
     else:
-        firt_screen() #caso o progressbar termine ele ira chamar outra tela
+        first_screen() #caso o progressbar termine ele ira chamar outra tela
 
-def firt_screen(): #funçao para chamar 1 tela
+def first_screen(): #funçao para chamar 1 tela
     for widget in app.winfo_children():
         widget.destroy()  # Remove todos os widgets da tela de carregamento
 
@@ -99,7 +98,6 @@ def firt_screen(): #funçao para chamar 1 tela
 
     button = ctk.CTkButton(app, text="Confirmar", command=event, fg_color='green', font=("Arial", 16), hover_color='darkgreen')
     button.pack(pady=10) #exibindo o botao de confirmar onde ele acionara a funçao event caso clicado
-
 
 def second_screen(): #funçao para chamar 2 tela
     for widget in app.winfo_children():
@@ -149,7 +147,7 @@ def final_screen(): #função para chamar ultima tela
         rounds = 0
         global total_points
         total_points = 0
-        firt_screen()
+        first_screen()
 
     def finish(): #funçao finalizar jogo
         app.destroy()
