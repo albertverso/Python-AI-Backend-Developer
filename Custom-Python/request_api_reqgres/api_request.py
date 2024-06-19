@@ -9,7 +9,7 @@ class GetUsers: #classe que iria instanciar funçoes dentro dela.
 
         response = requests.get('https://reqres.in/api/users') #chamada get na api.
         if response.status_code == 200: #se status da solicitação for 200 passa para o proximo passo.
-            data = response.json() #variavel data recevera esse valor.
+            data = response.json() #variavel data recebera esse valor.
             return data #retorna data
         else:
             return print('ERRO: erro de requisição!')#se der algum status diferente de 200 vai aparecer mensagem de erro.
@@ -38,7 +38,7 @@ class GetUsers: #classe que iria instanciar funçoes dentro dela.
         number = 1
 
         for user in users:                                      #
-            list_users.append(f"USUARIO {number}: {user}\n")    #  --> percorrendo cada usuario e adicionando em list_users
+            list_users.append(f"USUARIO {number}: {user}            ")    #  --> percorrendo cada usuario e adicionando em list_users
             number += 1                                         #
 
         with open("lista_usuários.txt", "w") as arquivo:    #  --> abrindo e salvando a lista em um arquivo chamado lista_usuarios.
@@ -79,10 +79,3 @@ def main():
     email_automation(destinatario) #terceiro chamando a função de automatização de passadando o email de destino como paremetro.
 
 main() #chamando a função main().
-
-
-
-
-    
-
-
