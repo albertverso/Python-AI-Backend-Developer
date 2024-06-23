@@ -46,21 +46,25 @@ class Crud:
 
         print(result)
         
+    def read_user(email):
+
+        command = f'SELECT * FROM User Where email = "{email}";'
+        cursor.execute(command)
+        result = cursor.fetchall() #le o banco de dados
+
+        return result
+        
     #UPDATE
-    def update():
+    def update(coluna ,choosen, email):
 
-        nome = "carlos"
-        email = "zezeinho@gmail.com"
-
-        command = f'UPDATE User SET email = "{email}" WHERE name = "{nome}"'
+        command = f'UPDATE User SET {coluna} = "{choosen}" WHERE email = "{email}"'
         cursor.execute(command)
         connection_db.commit() #edita o banco de dados
 
     #DELETE
-    def delete():
-        nome = "carlos"
+    def delete(choosen):
 
-        command = f'DELETE FROM User WHERE name = "{nome}" '
+        command = f'DELETE FROM User WHERE email = "{choosen}" '
         cursor.execute(command)
         connection_db.commit() #edita o banco de dados 
 
@@ -86,8 +90,16 @@ def create(option = 1, user_id = 0):
 
         print("Usuário adicionado com sucesso!!!")
 
-def verify():
-    Crud.read() ## PAREI PARA VERIFICAR SE EXISTE USUARIO PARA CASDASTRA UMA TAREFA
+def verify(email):
+
+    result = Crud.read_user(email) ## PAREI PARA VERIFICAR SE EXISTE USUARIO PARA CASDASTRA UMA TAREFA
+    
+    if result == []:
+        print("usuario nao encontrado")
+    else:
+        print("ACHOUUUU BB")    
+  
+
     
    
     
@@ -95,9 +107,9 @@ def menu():
     menu = """\n
     ================ MENU ================
     [c]\tCriar Usuário ou tarefa
-    [r]\tExibir usuário ou tarefa
+    [r]\tExibir usuários ou tarefas
     [u]\tAtualizar usuário ou tarefa
-    [d]\Deletar usuario ou tarefa
+    [d]\tDeletar usuario ou tarefa
     [q]\tSair
     => """
     return input(textwrap.dedent(menu))    
@@ -111,19 +123,49 @@ def main():
             if option == 1:
                 create()
             elif option == 2:
-                verify()
+                email = input("Digite seu email de usuário: ")
+                verify(email)
                 #create(option)
             else:
                 print("\n Operação inválida, por favor selecione novamente a operação desejada. ")      
         elif opcao == "r":
-            sd
-
+            Crud.read()
         elif opcao == "u":
-            sdf
+            email = input("digite seu email: ")
+            option = int(input("Deseja editar nome[1] ou email[2]?"))
 
+            if option == 1:
+
+                update_name = input("Para qual nome deseja mudar?")
+                Crud.update("name", update_name, email)
+
+                print("Nome do usuário atualizado com sucesso!!!")
+            elif option == 2:
+
+                update_email = input("Para qual email deseja mudar?")
+                Crud.update("email", update_email, email)
+
+                print("Email do usuário atualizado com sucesso!!!")
+
+            else:
+                print("\n Operação inválida, por favor selecione novamente a operação desejada. ")  
         elif opcao == "d":
-            fsd
+            option = int(input("Deseja deletar Usuário[1] ou Tarefa[2]?"))
 
+            if option == 1:
+
+                delete = input("Digite o email de usuário que deseja deletar: ")
+                Crud.delete(delete)
+                print("Usuário deletado com sucesso!!!")
+
+            elif option == 2:
+
+                delete = input("Digite o titulo da tarefa que deseja deletar: ")
+                Crud.delete(delete)
+                print("Usuário deletado com sucesso!!!")
+
+            else:
+                print("\n Operação inválida, por favor selecione novamente a operação desejada. ")  
         elif opcao == "q":
             break
 
