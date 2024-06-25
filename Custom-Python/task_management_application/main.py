@@ -38,13 +38,6 @@ class Crud:
         connection_db.commit() #edita o banco de dados 
 
     #READ
-    def read(choosen):
-
-        command = f'SELECT * FROM {choosen};'
-        cursor.execute(command)
-        result = cursor.fetchall() #le o banco de dados
-
-        print(result)
         
     def read_user(email):
 
@@ -54,9 +47,9 @@ class Crud:
 
         return result
         
-    def read_task(user_id):
+    def read_task(user_id, type):
 
-        command = f'SELECT * FROM Task Where userId = "{user_id}";'
+        command = f'SELECT * FROM Task Where {type} = "{user_id}";'
         cursor.execute(command)
         result = cursor.fetchall() #le o banco de dados
       
@@ -72,7 +65,7 @@ class Crud:
         
     def update_task(coluna ,choosen, title):
 
-        command = f'UPDATE Task SET {coluna} = "{choosen}" WHERE userId = "{title}"'
+        command = f'UPDATE Task SET {coluna} = "{choosen}" WHERE title = "{title}"'
         cursor.execute(command)
         connection_db.commit() #edita o banco de dados
 
@@ -94,7 +87,28 @@ class Crud:
         print("\n Tarefa deletada com sucesso!!!")
 
 
+class User_linked_task:
 
+    def linked_user(choosen):
+        user_id = choosen
+        result = Crud.read_task(user_id, "UserId")
+        verify_id = 0
+
+        id_user = [usuario[4] for usuario in result]
+        for id_u in id_user:
+            verify_id = id_u
+     
+        return verify_id
+
+    def linked_task(title_search):    
+        result_title = Crud.read_task(title_search, "title")
+        task_verify_id_user = 0
+
+        title_id_user = [task[4] for task in result_title]
+        for task in title_id_user:
+            task_verify_id_user = task  
+
+        return task_verify_id_user
 
 def create(option = 0, user_id = 0):    
     created = Crud() 
@@ -119,45 +133,51 @@ def create(option = 0, user_id = 0):
 
 def updated(option, choosen):
     if option == 1:
-        tributes = int(input("Deseja editar nome[1] ou email[2]?"))
+        tributes = int(input("Deseja editar nome[1] ou email[2]: "))
         if tributes == 1:
 
-            update_name = input("Para qual nome deseja mudar?")
+            update_name = input("Informe o novo nome: ")
             Crud.update_user("name", update_name, choosen)
 
             print("\n Nome do usuário atualizado com sucesso!!!")
         elif tributes == 2:
-            update_email = input("Para qual email deseja mudar?")
+            update_email = input("Informe o novo email: ")
             Crud.update_user("email", update_email, choosen)
 
             print("\n Email do usuário atualizado com sucesso!!!")
     else:
-        user_id = choosen
-        result = Crud.read_task(user_id)
-        verify_id = 0
+        linked = User_linked_task
 
-        id_user = [usuario[4] for usuario in result]
-        for id in id_user:
-            verifi_id = id
-        # PAREI NA PARTE DE VERIFICAR SE USUARIO ESTA ESTRELADO AO TASK PARA PODER ATUALIZAR A TABELA DE TAREFAS
+        verify_id = linked.linked_user(choosen)
+        
+        title_search = input("Qual titulo da tarefa vc deseja editar: ")
 
-        #ja tenho a vcerificação de id de uma task que esta atrelado ao usuario
-        print(verifi_id)
+        task_verify_id_user = linked.linked_task(title_search)
 
-        #proximo passo pergunta ao usuario o titulo da task que ele quer editar e verificar se a task que ele solicitou pertence a ele
+        if task_verify_id_user == verify_id:
+            while True:
 
+                try:
+                    tributes = int(input("Deseja editar titulo[1] ou descrição[2]?"))
+                    if tributes == 1:
+                        update_title = input("Digite um novo titulo: ")
+                        Crud.update_task("title", update_title, title_search)
 
-        # tributes = int(input("Deseja editar titulo[1] ou descrição[2]?"))
-        # if tributes == 1:
-        #     update_title = input("Digite um novo titulo: ")
-        #     Crud.update_task("title", update_title, choosen)
+                        print("\n titulo atualizado com sucesso!!!")
+                        break
+                    elif tributes == 2:
+                        update_description = input("Digite uma nova descrição: ")
+                        Crud.update_task("description", update_description, title_search)
 
-        #     print("\n titulo atualizado com sucesso!!!")
-        # elif tributes == 2:
-        #     update_description = input("Digite uma nova descrição: ")
-        #     Crud.update_task("description", update_description, choosen)
+                        print("\n descrição atualizada com sucesso!!!")
+                        break
+                    else:
+                        print("\n Operação inválida, por favor selecione novamente a operação desejada.")
+                except ValueError:
+                        print("\n Operação inválida, por favor selecione novamente a operação desejada.") 
 
-        #     print("\n descrição atualizada com sucesso!!!")
+        else:
+            return print("\n Operação inválida, usuário não está atrelado a essa tarefa!")
 
 def verify_user(email, type_crud = "" ,option = 0,):
     
@@ -168,12 +188,19 @@ def verify_user(email, type_crud = "" ,option = 0,):
     else:
         if option == 1: 
             if type_crud == "delete":
-                Crud.delete_user(email)
+                confirm_email = input("Confirme seu email para deletar: ")
+                if confirm_email == email: 
+                    Crud.delete_user(confirm_email)
+                else:
+                    print("\n Operação inválida, emails diferentes! ")    
             elif type_crud == "update":
                 updated(option, email)
             elif type_crud == "read":
                 result = Crud.read_user(email)
-                print(f"\n{result}")
+                if result == []:
+                    return print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
+                else:
+                    print(f"\n{result}")
 
         else:
             id_user = [usuario[0] for usuario in result]  
@@ -182,18 +209,37 @@ def verify_user(email, type_crud = "" ,option = 0,):
                     create(option, id)
 
                 elif type_crud == "read":
-                    result = Crud.read_task(id)
+                    result = Crud.read_task(id, "UserId")
                     print(f"\n{result}") 
 
                 elif type_crud == "delete":
-                    title = input("Digite o titulo da tarefa que deseja deletar: ")
-                    Crud.delete_task(title)
+                    result = Crud.read_task(id, "UserId")
+                    
+                    if result == []:
+                        return print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
+                    else:
+                        print(f"\n{result}") 
+
+                        linked = User_linked_task
+                        verify_id = linked.linked_user(id)
+                        
+                        title_delete = input("Digite o titulo da tarefa que deseja deletar: ")
+
+                        task_verify_id_user = linked.linked_task(title_delete)
+
+                        if verify_id == task_verify_id_user:
+                            Crud.delete_task(title_delete)
+                        else:
+                            print("\n Operação inválida, usuário não está atrelado a essa tarefa!")   
 
                 elif type_crud == "update":
-                    updated(option, id)
-
-    
-   
+                    result = Crud.read_task(id, "UserId")
+                    
+                    if result == []:
+                        return print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
+                    else:
+                        print(f"\n{result}")    
+                        updated(option, id)  
     
 def menu():
     menu = """\n
@@ -204,61 +250,93 @@ def menu():
     [d]\tDeletar usuario ou tarefa
     [q]\tSair
     => """
-    return input(textwrap.dedent(menu))    
+    return input(textwrap.dedent(menu))
+
+def user_task_choose(x):
+    menu = f"""\n
+    ================ OPÇÕES ================
+    Deseja {x} um(a):
+    [1]\tUsuário
+    [2]\tTarefa
+    [3]\t>voltar para o menu<
+    => """
+    return input(textwrap.dedent(menu))
     
 def main():
+    erro_message = print("\n Operação inválida, por favor selecione novamente a operação desejada.") 
+
     while True:
         opcao = menu()
 
         if opcao == "c":
-            option = int(input("Deseja criar um novo usuario [1] ou uma nova tarefa[2]?"))
-            if option == 1:
-                create(option)
-            elif option == 2:
-                email = input("Digite seu email de usuário: ")
-                verify_user(email, "create", option)
-            else:
-                print("\n Operação inválida, por favor selecione novamente a operação desejada. ")   
+            while True:
+                option = (user_task_choose("criar"))
+
+                if option == "1":
+                    create(int(option))
+                    break
+                elif option == "2":
+                    email = input("Digite seu email de usuário: ")
+                    verify_user(email, "create", int(option))
+                    break
+                elif option == "3":
+                    
+                    break
+                else:
+                    erro_message 
 
         elif opcao == "r":
-            option = int(input("Deseja exibir um usuario [1] ou uma tarefa[2]?"))
-            if option == 1:
-                email = input("Digite seu email de usuário: ")
-                verify_user(email, "read", option)
-            elif option == 2:
-                email = input("Digite seu email de usuário: ")
-                verify_user(email, "read", option)
-            else:
-                print("\n Operação inválida, por favor selecione novamente a operação desejada. ") 
+            while True:
+                option = (user_task_choose("exibir"))
+
+                if option == "1":
+                    email = input("Digite seu email de usuário: ")
+                    verify_user(email, "read", int(option))
+                elif option == "2":
+                    email = input("Digite seu email de usuário: ")
+                    verify_user(email, "read", int(option))
+                elif option == "3":
+                    break
+                else:
+                    erro_message
 
         elif opcao == "u":
-            option = int(input("Deseja atualizar um usuario [1] ou uma tarefa[2]?"))
+            while True:
+                option = (user_task_choose("atualizar"))
 
-            if option == 1 or 2:
-                email = input("digite seu email: ")
-                verify_user(email, "update", option)
-            else:
-                print("\n Operação inválida, por favor selecione novamente a operação desejada. ") 
-
+                if option == "1":
+                    email = input("digite seu email: ")
+                    verify_user(email, "update", int(option))
+                elif option == "2":
+                    email = input("digite seu email: ")
+                    verify_user(email, "update", int(option))    
+                elif option == "3":
+                    break
+                else:
+                    erro_message
             
         elif opcao == "d":
-            option = int(input("Deseja deletar Usuário[1] ou Tarefa[2]?"))
+            while True:
+                option = (user_task_choose("deletar"))
 
-            if option == 1:
-                delete = input("Digite o email de usuário que deseja deletar: ")
-                verify_user(delete, "delete", option)
+                if option == "1":
+                    delete = input("Digite seu email: ")
+                    verify_user(delete, "delete", int(option))
+                elif option == "2":
+                    delete = input("Digite seu email: ")
+                    verify_user(delete, "delete", int(option))    
 
-            elif option == 2:
-                delete = input("Digite seu email: ")
-                verify_user(delete, "delete", option)
+                elif option == "3":
+                    break
 
-            else:
-                print("\n Operação inválida, por favor selecione novamente a operação desejada. ")  
+                else:
+                    erro_message  
+
         elif opcao == "q":
             break
 
         else:
-            print("\n Operação inválida, por favor selecione novamente a operação desejada. ")
+            erro_message
 
 main()
 
