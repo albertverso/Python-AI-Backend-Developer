@@ -1,12 +1,14 @@
 import mysql.connector
 import dotenv
 import os
-from datetime import datetime
 import textwrap
+from datetime import datetime
+from prettytable import PrettyTable
 
-
+#invocando as variaveis de ambiente pelo .env
 dotenv.load_dotenv(dotenv.find_dotenv())
 
+#inicia a conexão com servidor
 connection_db = mysql.connector.connect(
     host= os.getenv("HOST"),
     user= os.getenv("USER"),
@@ -16,7 +18,9 @@ connection_db = mysql.connector.connect(
 
 cursor = connection_db.cursor()
 
+#classe onde funcionara as requisições
 class Crud:
+
     #CREATE
     def insert_user(self, nome, email, createdAt):
         self.nome = nome
@@ -38,18 +42,9 @@ class Crud:
         connection_db.commit() #edita o banco de dados 
 
     #READ
-        
-    def read_user(email):
+    def read(table, column, req):
 
-        command = f'SELECT * FROM User Where email = "{email}";'
-        cursor.execute(command)
-        result = cursor.fetchall() #le o banco de dados
-
-        return result
-        
-    def read_task(user_id, type):
-
-        command = f'SELECT * FROM Task Where {type} = "{user_id}";'
+        command = f'SELECT * FROM {table} Where {column} = "{req}";'
         cursor.execute(command)
         result = cursor.fetchall() #le o banco de dados
       
@@ -57,41 +52,31 @@ class Crud:
     
         
     #UPDATE
-    def update_user(coluna ,choosen, email):
+    def update(table, column, update, validation, req):
 
-        command = f'UPDATE User SET {coluna} = "{choosen}" WHERE email = "{email}"'
-        cursor.execute(command)
-        connection_db.commit() #edita o banco de dados
-        
-    def update_task(coluna ,choosen, title):
-
-        command = f'UPDATE Task SET {coluna} = "{choosen}" WHERE title = "{title}"'
+        command = f'UPDATE {table} SET {column} = "{update}" WHERE {validation} = "{req}"'
         cursor.execute(command)
         connection_db.commit() #edita o banco de dados
 
     #DELETE
-    def delete_user(choosen):
+    def delete(table, column, req):
        
-        command = f'DELETE FROM User WHERE email = "{choosen}" '
+        command = f'DELETE FROM {table} WHERE {column} = "{req}" '
         cursor.execute(command)
         connection_db.commit() #edita o banco de dados 
 
-        print("\n Usuário deletado com sucesso!!!")
-        
-    def delete_task(choosen):
+        if table == "User":
+            print("\n Usuário deletado com sucesso!!!")
+        else:
+            print("\n Tarefa deletada com sucesso!!!")
 
-        command = f'DELETE FROM Task WHERE title = "{choosen}" '
-        cursor.execute(command)
-        connection_db.commit() #edita o banco de dados 
-
-        print("\n Tarefa deletada com sucesso!!!")
-
-
+#verificação se usuario esta atrelado a tarefa que ele deseja atualizar/deletar
 class User_linked_task:
 
-    def linked_user(choosen):
-        user_id = choosen
-        result = Crud.read_task(user_id, "UserId")
+    #verificando id do usuario atrelado a tarefa
+    def linked_user(req):
+        user_id = req
+        result = Crud.read("Task", "UserId", user_id)
         verify_id = 0
 
         id_user = [usuario[4] for usuario in result]
@@ -100,8 +85,9 @@ class User_linked_task:
      
         return verify_id
 
-    def linked_task(title_search):    
-        result_title = Crud.read_task(title_search, "title")
+    #verificando id da tarefa solicitada
+    def linked_task(req):    
+        result_title = Crud.read("Task", "title", req)
         task_verify_id_user = 0
 
         title_id_user = [task[4] for task in result_title]
@@ -110,64 +96,95 @@ class User_linked_task:
 
         return task_verify_id_user
 
-def create(option = 0, user_id = 0):    
-    created = Crud() 
+#função para criar usuário/tarefa antes de fazer a requisição e também faz uma pequena verfição se usuário com email ja existe antes de criar
+def create(option = 0, user_id = 0, email = ""):    
+    created = Crud()
+    verify_email = "" 
 
     if option == 1:
-        nome = input("digite seu nome: ")
-        email = input("digite seu email: ")
-        data_criacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        result = Crud.read("User", "email", email)
+        users = [usuario[2] for usuario in result]
 
-        created.insert_user(nome, email, data_criacao)
+        for user in users:
+            verify_email = user
 
-        print("\n Usuário adicionado com sucesso!!!")
+        if verify_email == email:
+           print("\n Operação inválida, email já cadastrado!") 
+        else:
+            nome = input("digite seu nome: ")
+            data_criacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            created.insert_user(nome, email, data_criacao)
+            print("\n Usuário adicionado com sucesso!!!")
     else:
         title = input("digite um titulo para sua tarefa: ")
-        description = input("digite uma descrição de sua tarefa: ")
-        data_criacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        idUser = user_id
+        verification_task = verify_task(title, user_id)
+       
+        if verification_task:
+            description = input("digite uma descrição de sua tarefa: ")
+            data_criacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            idUser = user_id
 
-        created.insert_task(title, description, data_criacao, idUser)
+            created.insert_task(title, description, data_criacao, idUser)
+            print("\n Tarefa adicionada com sucesso!!!")
+        else:
+            print("\n Operação inválida, usuário ja tem uma tarefa com esse titulo!") 
 
-        print("\n Tarefa adicionada com sucesso!!!")
-
-def updated(option, choosen):
+#função para atualizar e verificar usuário/tarefa antes de fazer a requisição
+def updated(option, req):
     if option == 1:
-        tributes = int(input("Deseja editar nome[1] ou email[2]: "))
-        if tributes == 1:
+        while True:
+            try:
+                tributes = int(input("Deseja editar nome[1] ou email[2]: "))
+                if tributes == 1:
 
-            update_name = input("Informe o novo nome: ")
-            Crud.update_user("name", update_name, choosen)
+                    update_name = input("Informe o novo nome: ")
+                    Crud.update( "User", "name", update_name, "email", req)
 
-            print("\n Nome do usuário atualizado com sucesso!!!")
-        elif tributes == 2:
-            update_email = input("Informe o novo email: ")
-            Crud.update_user("email", update_email, choosen)
+                    print("\n Nome do usuário atualizado com sucesso!!!")
+                    break
+                elif tributes == 2:
+                    update_email = input("Informe o novo email: ")
+                    Crud.update("User", "email", update_email, "email", req)
 
-            print("\n Email do usuário atualizado com sucesso!!!")
+                    print("\n Email do usuário atualizado com sucesso!!!")
+                    break
+                else:
+                    print("\n Operação inválida, por favor selecione novamente a operação desejada.")
+            except ValueError:
+                    print("\n Operação inválida, por favor selecione novamente a operação desejada.") 
     else:
+
+        #verificão se usuário esta atrelado a tarefa que ele solicitou atualizar
         linked = User_linked_task
 
-        verify_id = linked.linked_user(choosen)
+        verify_id = linked.linked_user(req)
         
-        title_search = input("Qual titulo da tarefa vc deseja editar: ")
+        title_search = input("Qual titulo da tarefa que você deseja editar: ")
 
         task_verify_id_user = linked.linked_task(title_search)
+        #-------------------------------------
 
         if task_verify_id_user == verify_id:
             while True:
-
                 try:
-                    tributes = int(input("Deseja editar titulo[1] ou descrição[2]?"))
+                    tributes = int(input("Deseja editar titulo[1] ou descrição[2]: "))
                     if tributes == 1:
                         update_title = input("Digite um novo titulo: ")
-                        Crud.update_task("title", update_title, title_search)
 
-                        print("\n titulo atualizado com sucesso!!!")
-                        break
+                        verification_task = verify_task(update_title, req)
+
+                        if verification_task:
+                            Crud.update("Task", "title", update_title, "title" , title_search)
+
+                            print("\n titulo atualizado com sucesso!!!")
+                            break
+                        else:
+                            print("\n Operação inválida, usuário ja tem uma tarefa com esse titulo!")
+                            break  
                     elif tributes == 2:
                         update_description = input("Digite uma nova descrição: ")
-                        Crud.update_task("description", update_description, title_search)
+                        Crud.update("Task", "description", update_description, "title", title_search)
 
                         print("\n descrição atualizada com sucesso!!!")
                         break
@@ -177,11 +194,27 @@ def updated(option, choosen):
                         print("\n Operação inválida, por favor selecione novamente a operação desejada.") 
 
         else:
-            return print("\n Operação inválida, usuário não está atrelado a essa tarefa!")
+            print("\n Operação inválida, usuário não está atrelado a essa tarefa!")
 
+#verifica se usuario nao vai criar tarefa com o mesmo titulo
+def verify_task(req, id):
+    verify_title = ""
+    result = Crud.read("Task", "UserId", id)
+    title_task = [usuario[1] for usuario in result]
+
+    for title in title_task:
+        verify_title = title
+
+    if verify_title != req:
+        return True
+    else:
+        return False    
+
+
+
+#função que verifica usuário já existe antes de toda requisição
 def verify_user(email, type_crud = "" ,option = 0,):
-    
-    result = Crud.read_user(email)
+    result = Crud.read("User", "email", email)
     
     if result == []:
         return print("\n Operação inválida, usuário não existe. ")
@@ -190,17 +223,14 @@ def verify_user(email, type_crud = "" ,option = 0,):
             if type_crud == "delete":
                 confirm_email = input("Confirme seu email para deletar: ")
                 if confirm_email == email: 
-                    Crud.delete_user(confirm_email)
+                    Crud.delete("User", "email", confirm_email)
                 else:
                     print("\n Operação inválida, emails diferentes! ")    
             elif type_crud == "update":
                 updated(option, email)
             elif type_crud == "read":
-                result = Crud.read_user(email)
-                if result == []:
-                    return print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
-                else:
-                    print(f"\n{result}")
+                result = Crud.read("User", "email", email)
+                table_result(result) 
 
         else:
             id_user = [usuario[0] for usuario in result]  
@@ -209,38 +239,61 @@ def verify_user(email, type_crud = "" ,option = 0,):
                     create(option, id)
 
                 elif type_crud == "read":
-                    result = Crud.read_task(id, "UserId")
-                    print(f"\n{result}") 
+                    result = Crud.read("Task", "UserId", id)
+                    if result == []:
+                        print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
+                    else:
+                        table_result(result, "Task")  
 
                 elif type_crud == "delete":
-                    result = Crud.read_task(id, "UserId")
+                    result = Crud.read("Task", "UserId", id)
                     
                     if result == []:
-                        return print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
+                        print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
                     else:
-                        print(f"\n{result}") 
+                        table_result(result, "Task")  
 
+                        #verificão se usuário esta atrelado a tarefa que ele solicitou deletar
                         linked = User_linked_task
                         verify_id = linked.linked_user(id)
                         
                         title_delete = input("Digite o titulo da tarefa que deseja deletar: ")
 
                         task_verify_id_user = linked.linked_task(title_delete)
+                        #----------------------------------------------------
 
                         if verify_id == task_verify_id_user:
-                            Crud.delete_task(title_delete)
+                            Crud.delete("Task", "title", title_delete)
                         else:
                             print("\n Operação inválida, usuário não está atrelado a essa tarefa!")   
 
                 elif type_crud == "update":
-                    result = Crud.read_task(id, "UserId")
+                    result = Crud.read("Task", "UserId", id)
                     
                     if result == []:
-                        return print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
+                        print("\n Operação inválida, esse usuário não tem nenhuma tarefa. ")
                     else:
-                        print(f"\n{result}")    
-                        updated(option, id)  
-    
+                        table_result(result, "Task")    
+                        updated(option, id) 
+
+#transforma a lista de resultados do banco de dados em um tabela usando prettyTable
+def table_result(result, type = ""):
+    #criar a tabela
+    table = PrettyTable()
+
+    if type == "Task":
+        table.field_names = ["N°", "Titulo", "Descrição", "Data de criação"]
+    else:    
+        table.field_names = ["N°", "Nome", "Email", "Data de criação"]
+
+    #adicionar linhas
+    for i, row in enumerate(result, start=1):
+        table.add_row([i, row[1], row[2], row[3]])
+
+    #exibir a tabela
+    print(f"\n{table}")
+
+#menu da função main    
 def menu():
     menu = """\n
     ================ MENU ================
@@ -252,16 +305,18 @@ def menu():
     => """
     return input(textwrap.dedent(menu))
 
+#opçoes do usuário depois de escolher uma opção do menu classificado em usuãrio/tarefa
 def user_task_choose(x):
     menu = f"""\n
     ================ OPÇÕES ================
     Deseja {x} um(a):
     [1]\tUsuário
     [2]\tTarefa
-    [3]\t>voltar para o menu<
+    [3]\tVoltar para o menu
     => """
     return input(textwrap.dedent(menu))
-    
+
+#função principal main    
 def main():
     erro_message = print("\n Operação inválida, por favor selecione novamente a operação desejada.") 
 
@@ -273,7 +328,8 @@ def main():
                 option = (user_task_choose("criar"))
 
                 if option == "1":
-                    create(int(option))
+                    email = input("Digite seu email: ")
+                    create(int(option), email= email)
                     break
                 elif option == "2":
                     email = input("Digite seu email de usuário: ")
@@ -340,5 +396,6 @@ def main():
 
 main()
 
+#fecha conexão com servidor
 cursor.close()
 connection_db.close()
