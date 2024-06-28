@@ -44,15 +44,32 @@ class Crud:
     #READ
     def read(table, column, req):
 
-        command = f'SELECT * FROM {table} Where {column} = "{req}";'
+        command = f'SELECT * FROM {table} Where {column} = "{req}"'
         cursor.execute(command)
         result = cursor.fetchall() #le o banco de dados
       
         return result
-    
+
+    def read_task_userId(req):
+
+        command = f'SELECT title FROM Task WHERE userId = "{req}"'
+        cursor.execute(command)
+        result = cursor.fetchall() #le o banco de dados
+      
+        return result
+
+    def read_task_id(title, req):
+
+        command = f'SELECT taskId FROM Task WHERE title = "{title}" AND userId = "{req}"'
+        cursor.execute(command)
+        result = cursor.fetchall() #le o banco de dados
+      
+        return result   
         
     #UPDATE
     def update(table, column, update, validation, req):
+
+        #define na tabela na coluna especifica e define ela com "update", depois procurar todas as linhas na tabela onde a coluna "validation" tem o valor "req".
 
         command = f'UPDATE {table} SET {column} = "{update}" WHERE {validation} = "{req}"'
         cursor.execute(command)
@@ -69,32 +86,37 @@ class Crud:
             print("\n Usuário deletado com sucesso!!!")
         else:
             print("\n Tarefa deletada com sucesso!!!")
+    
+    def force_delete(user_id):
+        # Apagar as tarefas relacionadas ao usuário
+        cursor.execute(f'DELETE FROM task WHERE userId = "{user_id}"')
+        # Apagar o usuário
+        cursor.execute(f'DELETE FROM user WHERE id = "{user_id}"')
 
-#verificação se usuario esta atrelado a tarefa que ele deseja atualizar/deletar
-class User_linked_task:
+        connection_db.commit()
 
-    #verificando id do usuario atrelado a tarefa
-    def linked_user(req):
-        user_id = req
-        result = Crud.read("Task", "UserId", user_id)
-        verify_id = 0
+        print("\n Usuário deletado com sucesso!!!")
 
-        id_user = [usuario[4] for usuario in result]
-        for id_u in id_user:
-            verify_id = id_u
-     
-        return verify_id
 
-    #verificando id da tarefa solicitada
-    def linked_task(req):    
-        result_title = Crud.read("Task", "title", req)
-        task_verify_id_user = 0
 
-        title_id_user = [task[4] for task in result_title]
-        for task in title_id_user:
-            task_verify_id_user = task  
+#verificando lista de titulos relacionada ao id do usuario e depois verifica se titulo solicitado para update/delete esta dentro dessa lista, se sim ele me retorna o id dessa task e true
+def linked_task(req, title):    
+    result_list = Crud.read_task_userId(req)
+    task_verify_id_task = 0
 
-        return task_verify_id_user
+    title_list = [list_tasks[0] for list_tasks in result_list]
+    
+    if title in title_list:
+        result_id_task = Crud.read_task_id(title, req)
+
+        id_task = [task[0] for task in result_id_task]
+        for id in id_task:
+            task_verify_id_task = id
+
+        return task_verify_id_task, True
+
+    else:
+        return 0, False    
 
 #função para criar usuário/tarefa antes de fazer a requisição e também faz uma pequena verfição se usuário com email ja existe antes de criar
 def create(option = 0, user_id = 0, email = ""):    
@@ -139,12 +161,15 @@ def updated(option, req):
                 if tributes == 1:
 
                     update_name = input("Informe o novo nome: ")
+                    #define na tabela USER o name e define ela com update_name, depois procurar todas as linhas na tabela User onde a coluna email tem o valor "req".
                     Crud.update( "User", "name", update_name, "email", req)
 
                     print("\n Nome do usuário atualizado com sucesso!!!")
                     break
                 elif tributes == 2:
                     update_email = input("Informe o novo email: ")
+
+                    #define na tabela USER o email e define ela com update_email, depois procurar todas as linhas na tabela User onde a coluna email tem o valor "req".
                     Crud.update("User", "email", update_email, "email", req)
 
                     print("\n Email do usuário atualizado com sucesso!!!")
@@ -156,16 +181,14 @@ def updated(option, req):
     else:
 
         #verificão se usuário esta atrelado a tarefa que ele solicitou atualizar
-        linked = User_linked_task
+        verify_id = req
 
-        verify_id = linked.linked_user(req)
-        
         title_search = input("Qual titulo da tarefa que você deseja editar: ")
 
-        task_verify_id_user = linked.linked_task(title_search)
+        task_verify_id_user, validation = linked_task(verify_id, title_search)
         #-------------------------------------
 
-        if task_verify_id_user == verify_id:
+        if validation:
             while True:
                 try:
                     tributes = int(input("Deseja editar titulo[1] ou descrição[2]: "))
@@ -175,7 +198,8 @@ def updated(option, req):
                         verification_task = verify_task(update_title, req)
 
                         if verification_task:
-                            Crud.update("Task", "title", update_title, "title" , title_search)
+                            #define na tabela TASK o title e define ela com update_title, depois procurar todas as linhas na tabela TASK onde a coluna title tem o valor "title_search".
+                            Crud.update("Task", "title", update_title, "taskId", task_verify_id_user)
 
                             print("\n titulo atualizado com sucesso!!!")
                             break
@@ -184,7 +208,8 @@ def updated(option, req):
                             break  
                     elif tributes == 2:
                         update_description = input("Digite uma nova descrição: ")
-                        Crud.update("Task", "description", update_description, "title", title_search)
+                        #define na tabela TASK o description e define ela com update_description, depois procurar todas as linhas na tabela TASK onde a coluna title tem o valor "title_search".
+                        Crud.update("Task", "description", update_description, "taskId", task_verify_id_user)
 
                         print("\n descrição atualizada com sucesso!!!")
                         break
@@ -194,7 +219,7 @@ def updated(option, req):
                         print("\n Operação inválida, por favor selecione novamente a operação desejada.") 
 
         else:
-            print("\n Operação inválida, usuário não está atrelado a essa tarefa!")
+            print("\n Operação inválida, usuário não está atrelado a essa tarefaaaaaaaaaa!")
 
 #verifica se usuario nao vai criar tarefa com o mesmo titulo
 def verify_task(req, id):
@@ -210,8 +235,6 @@ def verify_task(req, id):
     else:
         return False    
 
-
-
 #função que verifica usuário já existe antes de toda requisição
 def verify_user(email, type_crud = "" ,option = 0,):
     result = Crud.read("User", "email", email)
@@ -220,17 +243,34 @@ def verify_user(email, type_crud = "" ,option = 0,):
         return print("\n Operação inválida, usuário não existe. ")
     else:
         if option == 1: 
-            if type_crud == "delete":
-                confirm_email = input("Confirme seu email para deletar: ")
-                if confirm_email == email: 
-                    Crud.delete("User", "email", confirm_email)
-                else:
-                    print("\n Operação inválida, emails diferentes! ")    
-            elif type_crud == "update":
-                updated(option, email)
-            elif type_crud == "read":
-                result = Crud.read("User", "email", email)
-                table_result(result) 
+            id_user = [usuario[0] for usuario in result]  
+            for id in id_user:
+                if type_crud == "delete":
+                    confirm_email = input("Confirme seu email para deletar: ")
+                    if confirm_email == email: 
+                        result = Crud.read("Task", "UserId", id)
+                        if result == []:
+                            Crud.delete("User", "email", confirm_email)
+                        else:
+                            table_result(result, "Task") 
+                            try:
+                                confirm = int(input("\n Esse usuário tem tarefas pendentes deseja prosseguir e deletar? sim[1] não[2]"))    
+                                if confirm == 1:
+                                    Crud.force_delete(id)
+                                elif confirm == 2:
+                                    print("")
+                                else:
+                                    print("\n Operação inválida, por favor selecione novamente a operação desejada.")   
+                            except ValueError:    
+                                print("\n Operação inválida, tente novamente!")
+                        
+                    else:
+                        print("\n Operação inválida, emails diferentes! ")    
+                elif type_crud == "update":
+                    updated(option, email)
+                elif type_crud == "read":
+                    result = Crud.read("User", "email", email)
+                    table_result(result) 
 
         else:
             id_user = [usuario[0] for usuario in result]  
@@ -254,16 +294,15 @@ def verify_user(email, type_crud = "" ,option = 0,):
                         table_result(result, "Task")  
 
                         #verificão se usuário esta atrelado a tarefa que ele solicitou deletar
-                        linked = User_linked_task
-                        verify_id = linked.linked_user(id)
+                        verify_id = id
                         
                         title_delete = input("Digite o titulo da tarefa que deseja deletar: ")
 
-                        task_verify_id_user = linked.linked_task(title_delete)
+                        task_verify_id_user, validation = linked_task(id, title_delete)
                         #----------------------------------------------------
 
-                        if verify_id == task_verify_id_user:
-                            Crud.delete("Task", "title", title_delete)
+                        if validation:
+                            Crud.delete("Task", "taskId", task_verify_id_user)
                         else:
                             print("\n Operação inválida, usuário não está atrelado a essa tarefa!")   
 
@@ -316,9 +355,10 @@ def user_task_choose(x):
     => """
     return input(textwrap.dedent(menu))
 
+def erro_message():
+    print("\n Operação inválida, por favor selecione novamente a operação desejada.")
 #função principal main    
 def main():
-    erro_message = print("\n Operação inválida, por favor selecione novamente a operação desejada.") 
 
     while True:
         opcao = menu()
@@ -339,7 +379,7 @@ def main():
                     
                     break
                 else:
-                    erro_message 
+                    erro_message() 
 
         elif opcao == "r":
             while True:
@@ -354,7 +394,7 @@ def main():
                 elif option == "3":
                     break
                 else:
-                    erro_message
+                    erro_message()
 
         elif opcao == "u":
             while True:
@@ -369,7 +409,7 @@ def main():
                 elif option == "3":
                     break
                 else:
-                    erro_message
+                    erro_message()
             
         elif opcao == "d":
             while True:
@@ -386,13 +426,13 @@ def main():
                     break
 
                 else:
-                    erro_message  
+                    erro_message()  
 
         elif opcao == "q":
             break
 
         else:
-            erro_message
+            erro_message()
 
 main()
 
