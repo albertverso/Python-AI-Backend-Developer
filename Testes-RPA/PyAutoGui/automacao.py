@@ -1,6 +1,8 @@
 import pyautogui
 import time
 
+#Simulando entrando em um site!
+
 pyautogui.PAUSE = 0.7
 # Pegar posição e tamanho da tela
 print(pyautogui.position())

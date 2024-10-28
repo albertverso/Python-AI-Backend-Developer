@@ -1,6 +1,8 @@
 import pyautogui
 import time
 
+#Simulando preenchimento de formulario
+
 img = 'C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/enviar.png'
 error= 'C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/error_email.png'
 
@@ -39,8 +41,8 @@ pyautogui.moveTo(x=557, y=382, duration=0.5)
 # Funções de clique
 pyautogui.click(x=557, y=382)
 
-# Funções de escrita
-# pyautogui.typewrite("alberto@gmail.com")
+#Funções de escrita
+pyautogui.typewrite("alberto@gmail.com")
 
 time.sleep(2)
 
@@ -97,33 +99,6 @@ pyautogui.moveTo(x=500, y=590, duration=0.5)
 # Funções de clique
 pyautogui.click(x=500, y=590)
 
-#Funções de Movimentação do mouse
-# pyautogui.moveTo(x=440, y=665, duration=0.5)
-
-# # Funções de clique
-# pyautogui.click(x=440, y=665)
-
-
-# position = pyautogui.locateOnScreen(img)
-# if position is not None:
-#     center = pyautogui.center(position)
-#     pyautogui.click(center)
-
-# pyautogui.click()
-# time.sleep(5)
-# positionError = pyautogui.locateOnScreen(error)
-# if position is not None:
-#     print(position)
-#     #Funções de Movimentação do mouse
-#     pyautogui.moveTo(x=575, y=439, duration=0.5)
-
-#     # Funções de clique
-#     pyautogui.click(x=575, y=439)
-
-#     # Funções de escrita
-#     pyautogui.typewrite("alberto@gmail.com")
-
-
 while True:
     try:
         # Verifica se o botão "Enviar" está na tela
@@ -132,19 +107,16 @@ while True:
         if position is not None:
             center = pyautogui.center(position)
             pyautogui.click(center)
-            print("Botão 'Enviar' clicado.")
 
             time.sleep(2) 
             pyautogui.scroll(-100)
             pyautogui.click()
-            time.sleep(2) 
+    
 
             # Verifica se ocorreu um erro no envio
             positionError = pyautogui.locateOnScreen(error)
 
             if positionError is not None:
-                print("Erro encontrado no envio do email.")
-                
                 # Corrige o e-mail
                 pyautogui.moveTo(x=615, y=356, duration=0.5)
                 pyautogui.click(x=615, y=356)
@@ -152,11 +124,9 @@ while True:
             
                 time.sleep(2)
             else:
-                print("Email enviado com sucesso!")
                 break 
         else:
-            print("Botão 'Enviar' não encontrado na tela. Tentando novamente...")
-            time.sleep(1)  # Espera um pouco antes de tentar novamente
+            time.sleep(1)
 
     except Exception as e:
         print("Erro:", e)
