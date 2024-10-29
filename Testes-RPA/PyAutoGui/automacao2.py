@@ -1,5 +1,6 @@
 import pyautogui
 import time
+from PIL import Image, ImageDraw 
 
 #Simulando monitoramento e print da tela
 
@@ -36,14 +37,28 @@ time.sleep(2)
 pyautogui.click(x=680, y=156)
 
 while True:
-    i = 0
-    excepttion = pyautogui.locateOnScreen("C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/moni.png")
-
     time.sleep(1)
-    pyautogui.scroll(-220)
-
+    pyautogui.scroll(-200)
+    excepttion = pyautogui.locateOnScreen("C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/moni.png")
     if excepttion is not None:
         print(excepttion)
-        save = pyautogui.screenshot("C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/captura.png")
+        path = "C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/capitura.png"
+        save = pyautogui.screenshot(path)
+        image = Image.open(path)
+
+        # Desenhar um círculo em torno da área identificada
+        draw = ImageDraw.Draw(image)
+        x, y, width, height = excepttion
+        center_x = x + width // 2
+        center_y = y + height // 2
+        radius = max(width, height) // 2 + 10  # Aumenta o raio um pouco para melhor visibilidade
+
+        draw.ellipse((center_x - radius, center_y - radius, center_x + radius, center_y + radius), outline="red", width=5)
+        
+        # Salvar imagem com círculo
+        image.save(path)
+        
         pyautogui.hotkey("alt", "f4")
+        time.sleep(1)
+        image.show()
         break
