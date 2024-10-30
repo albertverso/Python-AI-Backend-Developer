@@ -23,9 +23,6 @@ def new_aba():
         pyautogui.center(new_aba)
         pyautogui.moveTo(new_aba, duration=0.3)
         pyautogui.click()
-        # Mover um pouco para a direita, por exemplo, 20 pixels
-        # offset_y = 40
-        # pyautogui.moveTo(center_x, center_y + offset_y, duration=0.3)
 
 def link_google():
     pyautogui.PAUSE = 0.5
@@ -73,18 +70,16 @@ def google_site_carmais():
     time.sleep(2)
 
     while True:
-        time.sleep(1)
-        pyautogui.PAUSE = 0.5
         pyautogui.scroll(-200)
+        time.sleep(0.2)
         fim_site = pyautogui.locateOnScreen('C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/fim_site.png')
         if fim_site is not None:
             pyautogui.scroll(-300)
             break
 
     while True:
-        time.sleep(1)
-        pyautogui.PAUSE = 0.5
         pyautogui.scroll(200)
+        time.sleep(0.2)
         comeco_site = pyautogui.locateOnScreen('C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/comeco_site.png')
         if comeco_site is not None:
             pyautogui.scroll(300)
@@ -110,7 +105,38 @@ def maps_carmais():
         pyautogui.moveTo(maps, duration=0.3)
         pyautogui.click()
 
+    time.sleep(5)
+    search_maps = pyautogui.locateOnScreen('C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/search_maps.png')
+    if search_maps is not None:
+        pyautogui.center(search_maps)
+        pyautogui.moveTo(search_maps, duration=0.3)
+        pyautogui.click()
+        pyautogui.write('Grupo Carmais')
+        pyautogui.press('enter')
+
+    time.sleep(2)
+    resultado = pyautogui.locateOnScreen('C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/resultado.png')
+    if resultado is not None:
+        pyautogui.center(resultado)
+        pyautogui.moveTo(resultado, duration=0.3)
+
+        while True:
+            local_carmais = pyautogui.locateOnScreen('C:/Users/carlos.alberto/projects/Python-AI-Backend-Developer/Testes-RPA/PyAutoGui/image/local_carmais.png')
+            if local_carmais is not None:
+                pyautogui.center(local_carmais)
+                pyautogui.moveTo(local_carmais, duration=0.3)
+                pyautogui.click()
+                time.sleep(5)
+                break
+
 if __name__ == '__main__':
-    open_edge()
-    google_site_carmais()
-    maps_carmais()
+    try:
+        open_edge()
+        google_site_carmais()
+        maps_carmais()
+    except Exception as e:
+        print(e)    
+    finally:
+        pyautogui.hotkey('alt', 'tab')
+        time.sleep(5)
+        pyautogui.hotkey('alt', 'f4')
