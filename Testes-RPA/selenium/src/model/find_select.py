@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 import pandas as pd
 import logging
 import traceback
-
+from selenium.webdriver.support.ui import Select
 
 def find_select():
     try:
@@ -15,15 +15,18 @@ def find_select():
 
         driver.maximize_window()
 
-        p.sleep(2)
+        p.sleep(1)
 
         element = driver.find_element(By.XPATH, '/html/body/section/devsite-header/div/div[1]/div/div/devsite-language-selector')
 
         element.click()
 
+        p.sleep(1)
+
         list = element.find_element(By.TAG_NAME, 'ul')
 
         all_options = list.find_elements(By.TAG_NAME, 'li')
+
 
         saved = [option.text for option in all_options if option.text.strip()] 
 
